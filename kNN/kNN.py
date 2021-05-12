@@ -1,5 +1,6 @@
 import operator
 from numpy import *
+import os
 
 
 def createDataSet():
@@ -79,3 +80,41 @@ def datingClassTest():
         print("the classifier came back with : %d,the real answer is : %d" % (classifierResult, datingLables[i]))
         if (classifierResult != datingLables[i]): errorCount += 1.0
     print("the total error rate is:%f" % (errorCount / float(numTestVecs)))
+
+def img2vector(filename):
+    returnVec = zeros((1,1024)) # 1行1024列=32* 32
+    fr = open(filename)
+    for i in range(32):
+        lineStr = fr.readline()
+        for j in range(32):
+            returnVec[0,32*i + j] = int(lineStr[j])
+    return returnVec
+
+# 标签数字_xx.txt
+def handwritingClassTest():
+    hwLabels = []
+    # listDir 列出目录下的文件列表
+    trainingFileList = os.listdir('/home/patinousward/workspace/digits/trainingDigits')
+    m = len(trainingFileList)
+    trainingMat = zeros((m,1024)) # 每个文件都创建一个向量
+    for i in range(m):
+        fileNameStr = trainingFileList[i]
+        fileStr = fileNameStr.split('.')[0]
+        classNumStr = int(fileStr.split('_')[0]) # 获取真实结果
+        hwLabels.append(classNumStr)
+        trainingMat[i,:] = img2vector('/home/patinousward/workspace/digits/trainingDigits/%s' % fileNameStr)
+    testFileList = os.listdir('/home/patinousward/workspace/digits/testDigits')
+    errorCount = 0.0
+    mTest = len(testFileList)
+    for i in range(mTest):
+        fileNameStr = testFileList[i]
+        fileStr = fileNameStr.split('.')[0]
+        classNumStr = int(fileStr.split('_')[0])
+        vectorUnderTest = img2vector('/home/patinousward/workspace/digits/testDigits/%s' % fileNameStr)
+        classifierResult = classify0(vectorUnderTest,trainingMat,hwLabels,3)
+        print("the classifier came back with:%d,the real answer is:%d" % (classifierResult,classNumStr))
+        if(classifierResult != classNumStr):errorCount +=1.0
+    # %s 字符串 %d 数字 %f 浮点数
+    print("\nthe total number of errors is: %d" % errorCount)
+    print("\nthe total error rate is: %f" % (errorCount /float(mTest)))
+
